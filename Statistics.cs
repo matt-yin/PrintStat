@@ -5,8 +5,11 @@ using System.Text.RegularExpressions;
 using System.Data;
 using System.Linq;
 
+// Catch exceptions when browsing directories and getting files
+// Implement logging function for exception handling
+// Initiate and sort the case pool for efficient searching
 // Try using EnumerateFiles which may be more efficient
-// Catch exceptions when getting files
+// Refactor the data table and its operations to a new class
 
 namespace PrintStat
 {
