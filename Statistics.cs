@@ -120,64 +120,64 @@ namespace PrintStat
             return customerMap.GetName(customerCode);
         }
 
-        public void CreateDataTable()
-        {
-            dt = new DataTable();
-            dt.Columns.Add("Date", typeof(DateTime));
-            dt.Columns.Add("Size", typeof(int));
-            dt.Columns.Add("Customer", typeof(string));
+        // public void CreateDataTable()
+        // {
+        //     dt = new DataTable();
+        //     dt.Columns.Add("Date", typeof(DateTime));
+        //     dt.Columns.Add("Size", typeof(int));
+        //     dt.Columns.Add("Customer", typeof(string));
 
-            var row = dt.NewRow();
-            row["Date"] = new DateTime(2021,9,1);
-            row["Size"] = 32;
-            row["Customer"] = "Uniform Teeth";
-            dt.Rows.Add(row);
+        //     var row = dt.NewRow();
+        //     row["Date"] = new DateTime(2021,9,1);
+        //     row["Size"] = 32;
+        //     row["Customer"] = "Uniform Teeth";
+        //     dt.Rows.Add(row);
 
-            row = dt.NewRow();
-            row["Date"] = new DateTime(2021,9,4);
-            row["Size"] = 18;
-            row["Customer"] = "Uniform Teeth";
-            dt.Rows.Add(row);
+        //     row = dt.NewRow();
+        //     row["Date"] = new DateTime(2021,9,4);
+        //     row["Size"] = 18;
+        //     row["Customer"] = "Uniform Teeth";
+        //     dt.Rows.Add(row);
 
-            row = dt.NewRow();
-            row["Date"] = new DateTime(2021,9,4);
-            row["Size"] = 44;
-            row["Customer"] = "SureCure";
-            dt.Rows.Add(row);
+        //     row = dt.NewRow();
+        //     row["Date"] = new DateTime(2021,9,4);
+        //     row["Size"] = 44;
+        //     row["Customer"] = "SureCure";
+        //     dt.Rows.Add(row);
 
-            // foreach (DataRow item in dt.Rows)
-            // {
-            //     System.Console.WriteLine($"{item["Date"]}, {item["Size"]}, {item["Customer"]}");
-            // }
+        //     // foreach (DataRow item in dt.Rows)
+        //     // {
+        //     //     System.Console.WriteLine($"{item["Date"]}, {item["Size"]}, {item["Customer"]}");
+        //     // }
 
-            // Sort the rows based on the value in Date in descendent order
-            DataView dv = dt.DefaultView;
-            dv.Sort = "Date desc";
-            DataTable result = dv.ToTable();
+        //     // Sort the rows based on the value in Date in descendent order
+        //     DataView dv = dt.DefaultView;
+        //     dv.Sort = "Date desc";
+        //     DataTable result = dv.ToTable();
 
 
 
-            // Select distinct values in Date
-            DateTime[] dateArray = dt.DefaultView.ToTable(true, "Date").AsEnumerable().Select(r=>r.Field<DateTime>("Date")).ToArray();
-            foreach (var item in dateArray)
-            {
-                System.Console.WriteLine(item);
-            }
+        //     // Select distinct values in Date
+        //     DateTime[] dateArray = dt.DefaultView.ToTable(true, "Date").AsEnumerable().Select(r=>r.Field<DateTime>("Date")).ToArray();
+        //     foreach (var item in dateArray)
+        //     {
+        //         System.Console.WriteLine(item);
+        //     }
 
-            DateTime d = new DataTime(2021,9,4);
-            DataRows[] res = dt.Select($"Date = {d}").ToArray();
+        //     DateTime d = new DataTime(2021,9,4);
+        //     DataRows[] res = dt.Select($"Date = {d}").ToArray();
 
-            foreach (DataRow item in res)
-            {
-                Console.WriteLine($"{item["Date"]}, {item["Size"]}, {item["Customer"]}");
-            }
+        //     foreach (DataRow item in res)
+        //     {
+        //         Console.WriteLine($"{item["Date"]}, {item["Size"]}, {item["Customer"]}");
+        //     }
 
-        }
+        // }
 
-        public void SortTest()
-        {
+        // public void SortTest()
+        // {
 
-        }
+        // }
 
         // public void SortByDate()
         // {
