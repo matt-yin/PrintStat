@@ -16,27 +16,60 @@ namespace PrintStat
     public class Statistics
     {
         public List<JobInfo> jobs = new List<JobInfo>();
+
+        private DataTable jobTable;
         public List<CaseInfo> cases = new List<CaseInfo>();
         public SortedDictionary<DateTime, List<CaseInfo>> dateMap = new SortedDictionary<DateTime, List<CaseInfo>>();
 
         private string caseRootDir = @"Z:\3. Patients for Printing\3. Completed";
         private CustomerDict customerMap = new CustomerDict();
 
+        public Statistics()
+        {
+            jobTable = new DataTable();
+            jobTable.Columns.Add("Name", typeof(string));
+            jobTable.Columns.Add("CreationDate", typeof(DateTime));
+            jobTable.Columns.Add("Extension", typeof(string));
+        }
+
         private DataTable dt;
 
-        // Load the job files in the printing log to the internal job list. Job name and creation date is retrieved.
+        // Load the job files into a data table in memory given the specified job directory
+        // File name, creation date and extension are retrieved
+        // Files without an extension of 3dprint, print, rpproj are discarded
         public void LoadJobFiles(string path)
         {
-            jobs.Clear();
-
+            jobTable.Clear();
+ 
             string[] jobFiles = Directory.GetFiles(path);
             foreach (var jobFile in jobFiles)
             {
-                var job = new JobInfo();
                 FileInfo info = new FileInfo(jobFile);
-                job.CreateDate = info.CreationTime;
-                job.Name = Path.GetFileName(jobFile);
-                jobs.Add(job);
+
+                var row = jobTable.NewRow();
+                row["Name"] = Path.GetFileName(jobFile);
+                row["CreationDate"] = info.CreationTime;
+
+                var ext = Path.GetExtension(jobFile);
+                if (ext != ".3dprint" && ext != ".print" && ext != ".rpproj")
+                {
+                    continue;
+                }
+                else {
+                    row["Extension"] = ext;
+                    jobTable.Rows.Add(row); 
+                }
+            }
+        }
+
+        public void PrintJobTableRows()
+        {
+            foreach (DataRow row in jobTable.Rows)
+            {
+                String name = row["Name"].ToString();
+                String creationDate = ((DateTime)row["CreationDate"]).ToString("MM/dd/yyyy");
+                String extension = row["Extension"].ToString();
+                System.Console.WriteLine($"{name}\t{creationDate}\t{extension}");
             }
         }
 

@@ -12,14 +12,15 @@ namespace PrintStat
 
             // for every job in the list, get the create date and parse the case number
 
-            string PrintingLogDir = @"Z:\3. Patients for Printing\4. Printing Log\2021";
+
+            //string PrintingLogDir = @"Z:\3. Patients for Printing\4. Printing Log\2021";
 
             Statistics stat = new Statistics();
-            stat.LoadJobFiles(PrintingLogDir);
-            stat.GetCaseInfo();
+            string path = @"E:\MattWorkspace\Test";
+            stat.LoadJobFiles(path);
+            stat.PrintJobTableRows();
+            //stat.GetCaseInfo();
             //stat.CreateDataTable();
-
-            // test
 
         }
     }
