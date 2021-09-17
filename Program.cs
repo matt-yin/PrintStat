@@ -17,9 +17,10 @@ namespace PrintStat
 
             Statistics stat = new Statistics();
             string path = @"E:\MattWorkspace\Test";
-            stat.LoadJobFiles(path);
-            stat.PrintJobTableRows();
-            //stat.GetCaseInfo();
+            DateTime day = new DateTime(2021, 9, 16);
+            stat.LoadJobFiles(path, day);
+            //stat.PrintJobTableRows();
+            stat.GetCaseInfo("");
             //stat.CreateDataTable();
 
         }

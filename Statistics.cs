@@ -11,6 +11,10 @@ using System.Linq;
 // Try using EnumerateFiles which may be more efficient
 // Refactor the data table and its operations to a new class
 
+// Implement date filtering using LINQ preferrably
+// Keep only distinct case numbers for multi-tray cases
+// Using LINQ to search for pattern like DD-DDDD in parsing job names
+
 namespace PrintStat
 {
     public class Statistics
@@ -18,6 +22,8 @@ namespace PrintStat
         public List<JobInfo> jobs = new List<JobInfo>();
 
         private DataTable jobTable;
+        private DataTable caseTable;
+
         public List<CaseInfo> cases = new List<CaseInfo>();
         public SortedDictionary<DateTime, List<CaseInfo>> dateMap = new SortedDictionary<DateTime, List<CaseInfo>>();
 
@@ -30,6 +36,13 @@ namespace PrintStat
             jobTable.Columns.Add("Name", typeof(string));
             jobTable.Columns.Add("CreationDate", typeof(DateTime));
             jobTable.Columns.Add("Extension", typeof(string));
+
+            caseTable = new DataTable();
+            caseTable.Columns.Add("ID", typeof(string));
+            caseTable.Columns.Add("CreationDate", typeof(DateTime));
+            caseTable.Columns.Add("Extension", typeof(string));
+
+
         }
 
         private DataTable dt;
@@ -37,10 +50,10 @@ namespace PrintStat
         // Load the job files into a data table in memory given the specified job directory
         // File name, creation date and extension are retrieved
         // Files without an extension of 3dprint, print, rpproj are discarded
-        public void LoadJobFiles(string path)
+        public void LoadJobFiles(string path, DateTime day)
         {
             jobTable.Clear();
- 
+
             string[] jobFiles = Directory.GetFiles(path);
             foreach (var jobFile in jobFiles)
             {
@@ -48,18 +61,58 @@ namespace PrintStat
 
                 var row = jobTable.NewRow();
                 row["Name"] = Path.GetFileName(jobFile);
-                row["CreationDate"] = info.CreationTime;
+                row["CreationDate"] = info.CreationTime.Date;
+                row["Extension"] = Path.GetExtension(jobFile);
+                jobTable.Rows.Add(row);
 
-                var ext = Path.GetExtension(jobFile);
-                if (ext != ".3dprint" && ext != ".print" && ext != ".rpproj")
-                {
-                    continue;
-                }
-                else {
-                    row["Extension"] = ext;
-                    jobTable.Rows.Add(row); 
-                }
             }
+
+            // Filter file extension
+            string extensionFilter = "Extension NOT IN ('.3dprint', '.print', '.rpproj')";
+            RemoveDataRows(jobTable, extensionFilter);
+
+            string dateFilter = $"CreationDate <> '{day.ToString("d")}'";
+            RemoveDataRows(jobTable, dateFilter);
+        }
+
+        private void RemoveDataRows(DataTable table, string filter)
+        {
+            var rows = table.Select(filter);
+            foreach (var row in rows)
+            {
+                row.Delete();
+            }
+            table.AcceptChanges();
+        }
+
+        public void GetCaseInfo(string pathToCaseFolder)
+        {
+            foreach (DataRow job in jobTable.Rows)
+            {
+                System.Console.WriteLine(job["Name"].ToString());
+                List<string> cases = ParseJobName(job["Name"].ToString());
+                foreach (var item in cases)
+                {
+                    System.Console.WriteLine(item);
+                }
+                
+
+                // foreach (var caseNumber in cases)
+                // {
+                //     var caseFullName = GetCaseFullName(caseNumber, pathToCaseFolder);
+                //     var customer = getCustomerCode(caseFullName);
+
+                // }
+            }
+        }
+
+        public List<string> ParseJobName(string job)
+        {
+            string casePattern = "\\d{2}-\\d{4}";
+            Regex rgx = new Regex(casePattern);
+            var matches = rgx.Matches(job);
+            var list = matches.Cast<Match>().Select(Match=>Match.Value).ToList();
+            return list;
         }
 
         public void PrintJobTableRows()
@@ -73,23 +126,23 @@ namespace PrintStat
             }
         }
 
-        public void GetCaseInfo()
-        {
-            cases.Clear();
+        // public void GetCaseInfo()
+        // {
+        //     cases.Clear();
 
-            foreach (var job in jobs)
-            {
-                var jobCases = ParseJob(job);
-                cases.AddRange(jobCases);
-            }
-        }
+        //     foreach (var job in jobs)
+        //     {
+        //         var jobCases = ParseJob(job);
+        //         cases.AddRange(jobCases);
+        //     }
+        // }
 
         // Parse the job name to get the list of cases, and retrieve the case year, case size and customer
         // Case number must be of pattern XX-XXXX and case year 20XX where X denotes a numeric digit
         private List<CaseInfo> ParseJob(JobInfo job)
         {
             string[] sections = job.Name.Split('-');
-            string caseString = Regex.Replace(sections[0], @"s",""); 
+            string caseString = Regex.Replace(sections[0], @"s", "");
             string[] cases = caseString.Split('_');
             List<CaseInfo> result = new List<CaseInfo>();
 
@@ -100,7 +153,7 @@ namespace PrintStat
                 if (pattern.IsMatch(item))
                 {
                     // Initialize the case with case number and case year
-                    CaseInfo c = new CaseInfo(item, $"20{item.Substring(0,2)}");
+                    CaseInfo c = new CaseInfo(item, $"20{item.Substring(0, 2)}");
                     c.CaseSize = GetCaseSize(c.CaseNumber, caseRootDir);
                     c.CustomerCode = getCustomerCode(c.CaseFullName);
                     c.PrintDate = job.CreateDate;
@@ -137,7 +190,7 @@ namespace PrintStat
 
         private string getCustomerCode(string caseFullName)
         {
-            string[] sections = Regex.Replace(caseFullName, @"s","").Split('_');
+            string[] sections = Regex.Replace(caseFullName, @"s", "").Split('_');
 
             if (sections.Length == 2)
             {
@@ -145,7 +198,7 @@ namespace PrintStat
             }
 
             return "";
-            
+
         }
 
         private string GetCustomerName(string customerCode)
