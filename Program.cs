@@ -17,12 +17,16 @@ namespace PrintStat
 
             Statistics stat = new Statistics();
             string path = @"E:\MattWorkspace\Test";
+            string caseDir = @"Z:\3. Patients for Printing\3. Completed";
             DateTime day = new DateTime(2021, 9, 16);
-            stat.LoadJobFiles(path, day);
+
+            //stat.LoadJobFiles(path, day);
             //stat.PrintJobTableRows();
-            stat.GetCaseInfo("");
+            //stat.GetCaseInfo(caseDir);
             //stat.CreateDataTable();
 
+            string test = @"12-3456 John Doe_UT        ENV";
+            System.Console.WriteLine(stat.GetCustomer(test));
         }
     }
 }

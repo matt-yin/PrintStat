@@ -46,3 +46,19 @@ E:\MattWorkspace\PrintStat\PrintStat\bin\Debug\net5.0\PrintStat.dll
 E:\MattWorkspace\PrintStat\PrintStat\bin\Debug\net5.0\ref\PrintStat.dll
 E:\MattWorkspace\PrintStat\PrintStat\bin\Debug\net5.0\PrintStat.pdb
 E:\MattWorkspace\PrintStat\PrintStat\obj\Debug\net5.0\PrintStat.genruntimeconfig.cache
+F:\My Documents\Visual Studio Projects\PrintStat\obj\Debug\net5.0\PrintStat.csproj.AssemblyReference.cache
+F:\My Documents\Visual Studio Projects\PrintStat\obj\Debug\net5.0\PrintStat.GeneratedMSBuildEditorConfig.editorconfig
+F:\My Documents\Visual Studio Projects\PrintStat\obj\Debug\net5.0\PrintStat.AssemblyInfoInputs.cache
+F:\My Documents\Visual Studio Projects\PrintStat\obj\Debug\net5.0\PrintStat.AssemblyInfo.cs
+F:\My Documents\Visual Studio Projects\PrintStat\obj\Debug\net5.0\PrintStat.csproj.CoreCompileInputs.cache
+F:\My Documents\Visual Studio Projects\PrintStat\obj\Debug\net5.0\PrintStat.dll
+F:\My Documents\Visual Studio Projects\PrintStat\obj\Debug\net5.0\ref\PrintStat.dll
+F:\My Documents\Visual Studio Projects\PrintStat\obj\Debug\net5.0\PrintStat.pdb
+F:\My Documents\Visual Studio Projects\PrintStat\bin\Debug\net5.0\PrintStat.exe
+F:\My Documents\Visual Studio Projects\PrintStat\bin\Debug\net5.0\PrintStat.deps.json
+F:\My Documents\Visual Studio Projects\PrintStat\bin\Debug\net5.0\PrintStat.runtimeconfig.json
+F:\My Documents\Visual Studio Projects\PrintStat\bin\Debug\net5.0\PrintStat.runtimeconfig.dev.json
+F:\My Documents\Visual Studio Projects\PrintStat\bin\Debug\net5.0\PrintStat.dll
+F:\My Documents\Visual Studio Projects\PrintStat\bin\Debug\net5.0\ref\PrintStat.dll
+F:\My Documents\Visual Studio Projects\PrintStat\bin\Debug\net5.0\PrintStat.pdb
+F:\My Documents\Visual Studio Projects\PrintStat\obj\Debug\net5.0\PrintStat.genruntimeconfig.cache

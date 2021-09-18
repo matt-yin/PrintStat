@@ -5,47 +5,36 @@ using System.Text.RegularExpressions;
 using System.Data;
 using System.Linq;
 
-// Catch exceptions when browsing directories and getting files
-// Implement logging function for exception handling
-// Initiate and sort the case pool for efficient searching
-// Try using EnumerateFiles which may be more efficient
-// Refactor the data table and its operations to a new class
-
-// Implement date filtering using LINQ preferrably
-// Keep only distinct case numbers for multi-tray cases
-// Using LINQ to search for pattern like DD-DDDD in parsing job names
+// 1. Implement exception handling for accessing directories and files
+// 2. Delete duplicte cases which has multiple appearances in the job files
+// 3. Implement the data display
 
 namespace PrintStat
 {
     public class Statistics
     {
-        public List<JobInfo> jobs = new List<JobInfo>();
-
         private DataTable jobTable;
         private DataTable caseTable;
 
         public List<CaseInfo> cases = new List<CaseInfo>();
-        public SortedDictionary<DateTime, List<CaseInfo>> dateMap = new SortedDictionary<DateTime, List<CaseInfo>>();
 
-        private string caseRootDir = @"Z:\3. Patients for Printing\3. Completed";
         private CustomerDict customerMap = new CustomerDict();
 
         public Statistics()
         {
+            // Initiate the job table
             jobTable = new DataTable();
             jobTable.Columns.Add("Name", typeof(string));
             jobTable.Columns.Add("CreationDate", typeof(DateTime));
             jobTable.Columns.Add("Extension", typeof(string));
 
+            // Initiate the case table
             caseTable = new DataTable();
             caseTable.Columns.Add("ID", typeof(string));
-            caseTable.Columns.Add("CreationDate", typeof(DateTime));
-            caseTable.Columns.Add("Extension", typeof(string));
-
-
+            caseTable.Columns.Add("FullName", typeof(string));
+            caseTable.Columns.Add("Customer", typeof(DateTime));
+            jobTable.Columns.Add("Size", typeof(int));
         }
-
-        private DataTable dt;
 
         // Load the job files into a data table in memory given the specified job directory
         // File name, creation date and extension are retrieved
@@ -71,6 +60,7 @@ namespace PrintStat
             string extensionFilter = "Extension NOT IN ('.3dprint', '.print', '.rpproj')";
             RemoveDataRows(jobTable, extensionFilter);
 
+            // Filter creation date
             string dateFilter = $"CreationDate <> '{day.ToString("d")}'";
             RemoveDataRows(jobTable, dateFilter);
         }
@@ -85,33 +75,39 @@ namespace PrintStat
             table.AcceptChanges();
         }
 
-        public void GetCaseInfo(string pathToCaseFolder)
+        public void GetCaseInfo(string caseFolder)
         {
+            var allCases = Directory.GetDirectories(caseFolder);
+
             foreach (DataRow job in jobTable.Rows)
             {
                 System.Console.WriteLine(job["Name"].ToString());
                 List<string> cases = ParseJobName(job["Name"].ToString());
-                foreach (var item in cases)
+
+                foreach (var c in cases)
                 {
-                    System.Console.WriteLine(item);
+                    string caseFullName = GetCaseFullName(c, allCases);
+                    string cust = GetCustomer(caseFullName);
+                    int size = GetCaseSize(caseFullName, caseFolder);
+
+                    DataRoq row = caseTable.NewRow();
+                    row["ID"] = c;
+                    row["FullName"] = caseFullName;
+                    row["Customer"] = cust;
+                    row["Size"] = size;
+                    caseTable.Rows.Add(row);
                 }
-                
-
-                // foreach (var caseNumber in cases)
-                // {
-                //     var caseFullName = GetCaseFullName(caseNumber, pathToCaseFolder);
-                //     var customer = getCustomerCode(caseFullName);
-
-                // }
             }
         }
 
+
+        // Extract case numbers from the job filename which match the pattern DD-DDDD
         public List<string> ParseJobName(string job)
         {
             string casePattern = "\\d{2}-\\d{4}";
             Regex rgx = new Regex(casePattern);
             var matches = rgx.Matches(job);
-            var list = matches.Cast<Match>().Select(Match=>Match.Value).ToList();
+            var list = matches.Cast<Match>().Select(Match => Match.Value).ToList();
             return list;
         }
 
@@ -123,6 +119,45 @@ namespace PrintStat
                 String creationDate = ((DateTime)row["CreationDate"]).ToString("MM/dd/yyyy");
                 String extension = row["Extension"].ToString();
                 System.Console.WriteLine($"{name}\t{creationDate}\t{extension}");
+            }
+        }
+
+        private string GetCaseFullName(string ID, string[] collection)
+        {
+            List<string> result = new List<string>();
+            foreach (var c in collection)
+            {
+                if (c.StartsWith(ID))
+                {
+                    result.Add(c);
+                }
+            }
+
+            if (result.Count == 1)
+            {
+                return result[0];
+            }
+            else if (result.Count == 0)
+            {
+                throw new DirectoryNotFoundException($"Case {ID}: directory NOT found!");
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException($"Case {ID}: multiple diretories found!");
+            }
+        }
+
+        private string GetCustomer(string name)
+        {
+            if (!name.Contains('_'))
+            {
+                return "SureCure";
+            }
+            else
+            {
+                string pattern = @"^[^_]*_([\S]+)\s";
+                Regex rgx = new Regex(pattern, RegexOptions.IgnoreCase);
+                return rgx.Match(name).Groups[1].Value;
             }
         }
 
@@ -139,72 +174,71 @@ namespace PrintStat
 
         // Parse the job name to get the list of cases, and retrieve the case year, case size and customer
         // Case number must be of pattern XX-XXXX and case year 20XX where X denotes a numeric digit
-        private List<CaseInfo> ParseJob(JobInfo job)
+        // private List<CaseInfo> ParseJob(JobInfo job)
+        // {
+        //     string[] sections = job.Name.Split('-');
+        //     string caseString = Regex.Replace(sections[0], @"s", "");
+        //     string[] cases = caseString.Split('_');
+        //     List<CaseInfo> result = new List<CaseInfo>();
+
+        //     Regex pattern = new Regex(@"^\d{2}-\d{4}");
+        //     foreach (var item in cases)
+        //     {
+        //         // Check if the case number mathces the pattern xx-xxxx
+        //         if (pattern.IsMatch(item))
+        //         {
+        //             // Initialize the case with case number and case year
+        //             CaseInfo c = new CaseInfo(item, $"20{item.Substring(0, 2)}");
+        //             c.CaseSize = GetCaseSize(c.CaseNumber, caseRootDir);
+        //             c.CustomerCode = getCustomerCode(c.CaseFullName);
+        //             c.PrintDate = job.CreateDate;
+        //             result.Add(c);
+        //         }
+        //     }
+
+        //     return result;
+        // }
+
+        private int GetCaseSize(string caseFullName, string caseRootDir)
         {
-            string[] sections = job.Name.Split('-');
-            string caseString = Regex.Replace(sections[0], @"s", "");
-            string[] cases = caseString.Split('_');
-            List<CaseInfo> result = new List<CaseInfo>();
-
-            Regex pattern = new Regex(@"^\d{2}-\d{4}");
-            foreach (var item in cases)
-            {
-                // Check if the case number mathces the pattern xx-xxxx
-                if (pattern.IsMatch(item))
-                {
-                    // Initialize the case with case number and case year
-                    CaseInfo c = new CaseInfo(item, $"20{item.Substring(0, 2)}");
-                    c.CaseSize = GetCaseSize(c.CaseNumber, caseRootDir);
-                    c.CustomerCode = getCustomerCode(c.CaseFullName);
-                    c.PrintDate = job.CreateDate;
-                    result.Add(c);
-                }
-            }
-
-            return result;
-        }
-
-        private int GetCaseSize(string caseNumber, string caseRootDir)
-        {
-            string fullName = GetCaseFullName(caseNumber, caseRootDir);
             string stlDir = $"{caseRootDir}//{fullName}//Treatment//3D Printing Files";
             string[] stlFiles = Directory.GetFiles(stlDir, "*.stl");
 
             return stlFiles.Length;
         }
 
-        private string GetCaseFullName(string caseNumber, string caseRootDir)
-        {
-            string[] casePool = Directory.GetDirectories(caseRootDir);
-            foreach (var folder in casePool)
-            {
-                string folderName = Path.GetDirectoryName(folder);
-                if (folderName.StartsWith(caseNumber))
-                {
-                    return folderName;
-                }
-            }
+        // private string GetCaseFullName(string caseNumber, string caseRootDir)
+        // {
+        //     string[] casePool = Directory.GetDirectories(caseRootDir);
+        //     foreach (var folder in casePool)
+        //     {
+        //         string folderName = Path.GetDirectoryName(folder);
+        //         if (folderName.StartsWith(caseNumber))
+        //         {
+        //             return folderName;
+        //         }
+        //     }
 
-            return "";
-        }
+        //     return "";
+        // }
 
-        private string getCustomerCode(string caseFullName)
-        {
-            string[] sections = Regex.Replace(caseFullName, @"s", "").Split('_');
+        // private string getCustomerCode(string caseFullName)
+        // {
+        //     string[] sections = Regex.Replace(caseFullName, @"s", "").Split('_');
 
-            if (sections.Length == 2)
-            {
-                return sections[^1];
-            }
+        //     if (sections.Length == 2)
+        //     {
+        //         return sections[^1];
+        //     }
 
-            return "";
+        //     return "";
 
-        }
+        // }
 
-        private string GetCustomerName(string customerCode)
-        {
-            return customerMap.GetName(customerCode);
-        }
+        // private string GetCustomerName(string customerCode)
+        // {
+        //     return customerMap.GetName(customerCode);
+        // }
 
         // public void CreateDataTable()
         // {
