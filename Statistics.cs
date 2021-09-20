@@ -32,8 +32,8 @@ namespace PrintStat
             caseTable = new DataTable();
             caseTable.Columns.Add("ID", typeof(string));
             caseTable.Columns.Add("FullName", typeof(string));
-            caseTable.Columns.Add("Customer", typeof(DateTime));
-            jobTable.Columns.Add("Size", typeof(int));
+            caseTable.Columns.Add("Customer", typeof(string));
+            caseTable.Columns.Add("Size", typeof(int));
         }
 
         // Load the job files into a data table in memory given the specified job directory
@@ -90,7 +90,7 @@ namespace PrintStat
                     string cust = GetCustomer(caseFullName);
                     int size = GetCaseSize(caseFullName, caseFolder);
 
-                    DataRoq row = caseTable.NewRow();
+                    DataRow row = caseTable.NewRow();
                     row["ID"] = c;
                     row["FullName"] = caseFullName;
                     row["Customer"] = cust;
@@ -100,6 +100,17 @@ namespace PrintStat
             }
         }
 
+        public void PrintCaseTableRows()
+        {
+            foreach (DataRow row in caseTable.Rows)
+            {
+                string id = row["ID"].ToString();
+                string fullName = row["FullName"].ToString();;
+                string customer = row["Customer"].ToString();
+                string size = row["Size"].ToString();
+                System.Console.WriteLine($"{id}\t{customer}\t{size}");
+            }
+        }
 
         // Extract case numbers from the job filename which match the pattern DD-DDDD
         public List<string> ParseJobName(string job)
@@ -122,14 +133,17 @@ namespace PrintStat
             }
         }
 
-        private string GetCaseFullName(string ID, string[] collection)
+        public string GetCaseFullName(string ID, string[] collection)
         {
             List<string> result = new List<string>();
             foreach (var c in collection)
             {
-                if (c.StartsWith(ID))
+                DirectoryInfo dirInfo = new DirectoryInfo(c);
+                var caseFolderName = dirInfo.Name;
+
+                if (caseFolderName.StartsWith(ID))
                 {
-                    result.Add(c);
+                    result.Add(caseFolderName);
                 }
             }
 
@@ -199,9 +213,9 @@ namespace PrintStat
         //     return result;
         // }
 
-        private int GetCaseSize(string caseFullName, string caseRootDir)
+        public int GetCaseSize(string caseFullName, string caseRootDir)
         {
-            string stlDir = $"{caseRootDir}//{fullName}//Treatment//3D Printing Files";
+            string stlDir = $"{caseRootDir}//{caseFullName}//Treatment//3D Printing Files";
             string[] stlFiles = Directory.GetFiles(stlDir, "*.stl");
 
             return stlFiles.Length;
