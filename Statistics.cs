@@ -56,9 +56,9 @@ namespace PrintStat
 
             }
 
-            // Filter file extension
-            string extensionFilter = "Extension NOT IN ('.3dprint', '.print', '.rpproj')";
-            RemoveDataRows(jobTable, extensionFilter);
+            // // Filter file extension
+            // string extensionFilter = "Extension NOT IN ('.3dprint', '.print', '.rpproj')";
+            // RemoveDataRows(jobTable, extensionFilter);
 
             // Filter creation date
             string dateFilter = $"CreationDate <> '{day.ToString("d")}'";
@@ -161,7 +161,7 @@ namespace PrintStat
             }
         }
 
-        private string GetCustomer(string name)
+        public string GetCustomer(string name)
         {
             if (!name.Contains('_'))
             {
@@ -169,7 +169,7 @@ namespace PrintStat
             }
             else
             {
-                string pattern = @"^[^_]*_([\S]+)\s";
+                string pattern = @"^[^_]*_([\S]+)";
                 Regex rgx = new Regex(pattern, RegexOptions.IgnoreCase);
                 return rgx.Match(name).Groups[1].Value;
             }

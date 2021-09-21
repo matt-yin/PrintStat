@@ -16,9 +16,9 @@ namespace PrintStat
             //string PrintingLogDir = @"Z:\3. Patients for Printing\4. Printing Log\2021";
 
             Statistics stat = new Statistics();
-            string path = @"E:\MattWorkspace\Test";
+            string path = @"Z:\3. Patients for Printing\4. Printing Log\2021";
             string caseDir = @"Z:\3. Patients for Printing\3. Completed\2021";
-            DateTime day = new DateTime(2021, 9, 16);
+            DateTime day = new DateTime(2021, 9, 15);
 
             stat.LoadJobFiles(path, day);
             stat.GetCaseInfo(caseDir);
