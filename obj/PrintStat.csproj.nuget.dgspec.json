@@ -1,25 +1,31 @@
 {
   "format": 1,
   "restore": {
-    "E:\\MattWorkspace\\PrintStat\\PrintStat\\PrintStat.csproj": {}
+    "F:\\My Documents\\Visual Studio Projects\\PrintStat\\PrintStat.csproj": {}
   },
   "projects": {
-    "E:\\MattWorkspace\\PrintStat\\PrintStat\\PrintStat.csproj": {
+    "F:\\My Documents\\Visual Studio Projects\\PrintStat\\PrintStat.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\MattWorkspace\\PrintStat\\PrintStat\\PrintStat.csproj",
+        "projectUniqueName": "F:\\My Documents\\Visual Studio Projects\\PrintStat\\PrintStat.csproj",
         "projectName": "PrintStat",
-        "projectPath": "E:\\MattWorkspace\\PrintStat\\PrintStat\\PrintStat.csproj",
-        "packagesPath": "C:\\Users\\digit\\.nuget\\packages\\",
-        "outputPath": "E:\\MattWorkspace\\PrintStat\\PrintStat\\obj\\",
+        "projectPath": "F:\\My Documents\\Visual Studio Projects\\PrintStat\\PrintStat.csproj",
+        "packagesPath": "C:\\Users\\DELL\\.nuget\\packages\\",
+        "outputPath": "F:\\My Documents\\Visual Studio Projects\\PrintStat\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "D:\\Microsoft\\Xamarin\\NuGet\\"
+        ],
         "configFilePaths": [
-          "C:\\Users\\digit\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\DELL\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net5.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {

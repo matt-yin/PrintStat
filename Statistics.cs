@@ -5,9 +5,7 @@ using System.Text.RegularExpressions;
 using System.Data;
 using System.Linq;
 
-// 1. Implement exception handling for accessing directories and files
-// 2. Delete duplicte cases which has multiple appearances in the job files
-// 3. Implement the data display
+
 
 namespace PrintStat
 {
@@ -19,6 +17,10 @@ namespace PrintStat
         public List<CaseInfo> cases = new List<CaseInfo>();
 
         private CustomerDict customerMap = new CustomerDict();
+
+        private List<string> messages = new List<string>();
+
+        private Dictionary<string, int> statistics = new Dictionary<string, int>();
 
         public Statistics()
         {
@@ -34,6 +36,7 @@ namespace PrintStat
             caseTable.Columns.Add("FullName", typeof(string));
             caseTable.Columns.Add("Customer", typeof(string));
             caseTable.Columns.Add("Size", typeof(int));
+            caseTable.Columns.Add("Path", typeof(string));
         }
 
         // Load the job files into a data table in memory given the specified job directory
@@ -75,9 +78,14 @@ namespace PrintStat
             table.AcceptChanges();
         }
 
-        public void GetCaseInfo(string caseFolder)
+        public void GetCaseInfo(string[] caseFolders)
         {
-            var allCases = Directory.GetDirectories(caseFolder);
+            List<string> caseList = new List<string>();
+            foreach (var folder in caseFolders)
+            {
+                caseList.AddRange(Directory.GetDirectories(caseFolder).ToList<string>());
+            }
+            var allCases = caseList.ToArray();
 
             foreach (DataRow job in jobTable.Rows)
             {
@@ -86,17 +94,113 @@ namespace PrintStat
 
                 foreach (var c in cases)
                 {
-                    string caseFullName = GetCaseFullName(c, allCases);
+                    try
+                    {
+                        string casePath = GetCasePath(c, allCases);
+                        DirectoryInfo dirInfo = new DirectoryInfo(casePath);
+                        string caseFullName = dirInfo.Name;
+                    }
+                    catch (System.Exception e)
+                    {
+                        messages.Add($"Case {c} from Job {job["Name".ToString()]}:\nUnable to get the path: {e.Message}");
+                        continue;
+                    }
+
                     string cust = GetCustomer(caseFullName);
-                    int size = GetCaseSize(caseFullName, caseFolder);
+
+                    try
+                    {
+                        int size = GetCaseSize(caseFullName, caseFolder);
+                    }
+                    catch (System.Exception e)
+                    {
+                        messages.Add($"Case {c} from Job {job["Name".ToString()]}:\nUnable to get the case size: {e.Message}");
+                        continue;
+                    }
 
                     DataRow row = caseTable.NewRow();
                     row["ID"] = c;
                     row["FullName"] = caseFullName;
                     row["Customer"] = cust;
                     row["Size"] = size;
+                    row["Path"] = GetCasePath;
                     caseTable.Rows.Add(row);
                 }
+            }
+
+            // Remove duplicate rows
+            //caseTable = caseTable.AsEnumerable().GroupBy(x=>x.Field<string>("ID")).Select(y=>y.First()).CopyToDataTable();
+        }
+
+        // public void GetCaseInfo(string caseFolder)
+        // {
+        //     var allCases = Directory.GetDirectories(caseFolder);
+
+        //     foreach (DataRow job in jobTable.Rows)
+        //     {
+        //         System.Console.WriteLine(job["Name"].ToString());
+        //         List<string> cases = ParseJobName(job["Name"].ToString());
+
+        //         foreach (var c in cases)
+        //         {
+        //             try
+        //             {
+        //                 string caseFullName = GetCaseFullName(c, allCases);
+        //             }
+        //             catch (System.Exception e)
+        //             {
+        //                 messages.Add($"Case {c} from Job {job["Name".ToString()]}:\nUnable to get the full name: {e.Message}");
+        //                 continue;
+        //             }
+
+        //             string cust = GetCustomer(caseFullName);
+
+        //             try
+        //             {
+        //                 int size = GetCaseSize(caseFullName, caseFolder);
+        //             }
+        //             catch (System.Exception e)
+        //             {
+        //                 messages.Add($"Case {c} from Job {job["Name".ToString()]}:\nUnable to get the case size: {e.Message}");
+        //                 continue;
+        //             }
+
+        //             DataRow row = caseTable.NewRow();
+        //             row["ID"] = c;
+        //             row["FullName"] = caseFullName;
+        //             row["Customer"] = cust;
+        //             row["Size"] = size;
+        //             caseTable.Rows.Add(row);
+        //         }
+        //     }
+
+        //     // Remove duplicate rows
+        //     //caseTable = caseTable.AsEnumerable().GroupBy(x=>x.Field<string>("ID")).Select(y=>y.First()).CopyToDataTable();
+        // }
+
+        public void sort()
+        {
+            // Get distint values of customers
+            var customerList = (from r in caseTable.AsEnumerable() select r["Customer"]).Distinct().ToList();
+            foreach (var cust in customerList)
+            {
+                var total = caseTable.AsEnumerable().Where(y=>y.Field<string>("Customer") == cust).Sum(x=>x.Field<int>("Size"));
+                statistics.Add(cust, total);
+            }
+        }
+
+        public void Print()
+        {
+            PrintJobTableRows();
+            PrintCaseTableRows();
+            PrintStatistics();
+        }
+
+        public void PrintStatistics()
+        {
+            foreach (var item in statistics)
+            {
+                System.Console.WriteLine($"{item.Key} : {item.Value}");
             }
         }
 
@@ -105,7 +209,7 @@ namespace PrintStat
             foreach (DataRow row in caseTable.Rows)
             {
                 string id = row["ID"].ToString();
-                string fullName = row["FullName"].ToString();;
+                string fullName = row["FullName"].ToString(); ;
                 string customer = row["Customer"].ToString();
                 string size = row["Size"].ToString();
                 System.Console.WriteLine($"{id}\t{customer}\t{size}");
@@ -133,7 +237,35 @@ namespace PrintStat
             }
         }
 
-        public string GetCaseFullName(string ID, string[] collection)
+        public string GetCasePath(string ID, string[] collection)
+        {
+            List<string> result = new List<string>();
+            foreach (var c in collection)
+            {
+                DirectoryInfo dirInfo = new DirectoryInfo(c);
+                var caseFolderName = dirInfo.Name;
+
+                if (caseFolderName.StartsWith(ID))
+                {
+                    result.Add(c);
+                }
+            }
+
+            if (result.Count == 1)
+            {
+                return result[0];
+            }
+            else if (result.Count == 0)
+            {
+                throw new DirectoryNotFoundException($"Case {ID}: directory NOT found!");
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException($"Case {ID}: multiple diretories found!");
+            }
+        }
+
+        public string GetCasePath(string ID, string[] collection)
         {
             List<string> result = new List<string>();
             foreach (var c in collection)
@@ -169,9 +301,10 @@ namespace PrintStat
             }
             else
             {
-                string pattern = @"^[^_]*_([\S]+)";
+                string pattern = @"^[^_]*_([a-zA-Z0-9]+)";
                 Regex rgx = new Regex(pattern, RegexOptions.IgnoreCase);
-                return rgx.Match(name).Groups[1].Value;
+                string result = rgx.Match(name).Groups[1].Value;
+                return (result == "Retainer") ? "SureCure" : result;
             }
         }
 
@@ -213,10 +346,15 @@ namespace PrintStat
         //     return result;
         // }
 
-        public int GetCaseSize(string caseFullName, string caseRootDir)
+        public int GetCaseSize(string path)
         {
-            string stlDir = $"{caseRootDir}//{caseFullName}//Treatment//3D Printing Files";
+            string stlDir = $"{path}//Treatment//3D Printing Files";
             string[] stlFiles = Directory.GetFiles(stlDir, "*.stl");
+
+            if (stlFiles.Length == 0)
+            {
+                throw new FileNotFoundException("No Stl files found for case {caseFullName}");
+            }
 
             return stlFiles.Length;
         }
