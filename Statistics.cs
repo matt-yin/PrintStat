@@ -20,7 +20,8 @@ namespace PrintStat
 
         private List<string> messages = new List<string>();
 
-        private Dictionary<string, int> statistics = new Dictionary<string, int>();
+        private Dictionary<string, int> subTotalbyCustomer = new Dictionary<string, int>();
+        private int total = 0;
 
         public Statistics()
         {
@@ -83,7 +84,7 @@ namespace PrintStat
             List<string> caseList = new List<string>();
             foreach (var folder in caseFolders)
             {
-                caseList.AddRange(Directory.GetDirectories(caseFolder).ToList<string>());
+                caseList.AddRange(Directory.GetDirectories(folder).ToList<string>());
             }
             var allCases = caseList.ToArray();
 
@@ -94,11 +95,15 @@ namespace PrintStat
 
                 foreach (var c in cases)
                 {
+                    string casePath = "";
+                    string caseFullName = "";
+                    int size = 0;
+
                     try
                     {
-                        string casePath = GetCasePath(c, allCases);
+                        casePath = GetCasePath(c, allCases);
                         DirectoryInfo dirInfo = new DirectoryInfo(casePath);
-                        string caseFullName = dirInfo.Name;
+                        caseFullName = dirInfo.Name;
                     }
                     catch (System.Exception e)
                     {
@@ -110,7 +115,7 @@ namespace PrintStat
 
                     try
                     {
-                        int size = GetCaseSize(caseFullName, caseFolder);
+                        size = GetCaseSize(casePath);
                     }
                     catch (System.Exception e)
                     {
@@ -123,13 +128,13 @@ namespace PrintStat
                     row["FullName"] = caseFullName;
                     row["Customer"] = cust;
                     row["Size"] = size;
-                    row["Path"] = GetCasePath;
+                    row["Path"] = casePath;
                     caseTable.Rows.Add(row);
                 }
             }
 
             // Remove duplicate rows
-            //caseTable = caseTable.AsEnumerable().GroupBy(x=>x.Field<string>("ID")).Select(y=>y.First()).CopyToDataTable();
+            caseTable = caseTable.AsEnumerable().GroupBy(x=>x.Field<string>("ID")).Select(y=>y.First()).CopyToDataTable();
         }
 
         // public void GetCaseInfo(string caseFolder)
@@ -178,15 +183,19 @@ namespace PrintStat
         //     //caseTable = caseTable.AsEnumerable().GroupBy(x=>x.Field<string>("ID")).Select(y=>y.First()).CopyToDataTable();
         // }
 
-        public void sort()
+        public void Sort()
         {
             // Get distint values of customers
-            var customerList = (from r in caseTable.AsEnumerable() select r["Customer"]).Distinct().ToList();
+            var customerList = (from r in caseTable.AsEnumerable() select r["Customer"]).Distinct();
+            var customerArray = customerList.ToArray();
             foreach (var cust in customerList)
             {
-                var total = caseTable.AsEnumerable().Where(y=>y.Field<string>("Customer") == cust).Sum(x=>x.Field<int>("Size"));
-                statistics.Add(cust, total);
+                string customer = cust.ToString();
+                var subTotal = caseTable.AsEnumerable().Where(y => y.Field<string>("Customer") == customer).Sum(x => x.Field<int>("Size"));
+                subTotalbyCustomer.Add(customer, subTotal);
             }
+
+            total = caseTable.AsEnumerable().Sum(x => x.Field<int>("Size"));
         }
 
         public void Print()
@@ -198,10 +207,12 @@ namespace PrintStat
 
         public void PrintStatistics()
         {
-            foreach (var item in statistics)
+            foreach (var item in subTotalbyCustomer)
             {
                 System.Console.WriteLine($"{item.Key} : {item.Value}");
             }
+            
+            System.Console.WriteLine($"The total count of arches is {total}");
         }
 
         public void PrintCaseTableRows()
@@ -248,34 +259,6 @@ namespace PrintStat
                 if (caseFolderName.StartsWith(ID))
                 {
                     result.Add(c);
-                }
-            }
-
-            if (result.Count == 1)
-            {
-                return result[0];
-            }
-            else if (result.Count == 0)
-            {
-                throw new DirectoryNotFoundException($"Case {ID}: directory NOT found!");
-            }
-            else
-            {
-                throw new ArgumentOutOfRangeException($"Case {ID}: multiple diretories found!");
-            }
-        }
-
-        public string GetCasePath(string ID, string[] collection)
-        {
-            List<string> result = new List<string>();
-            foreach (var c in collection)
-            {
-                DirectoryInfo dirInfo = new DirectoryInfo(c);
-                var caseFolderName = dirInfo.Name;
-
-                if (caseFolderName.StartsWith(ID))
-                {
-                    result.Add(caseFolderName);
                 }
             }
 

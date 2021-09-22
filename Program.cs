@@ -13,8 +13,9 @@ namespace PrintStat
             string printingLogDir = @"Z:\3. Patients for Printing\4. Printing Log\2021";
 
             Statistics stat = new Statistics();
-            string caseDir = @"Z:\3. Patients for Printing\3. Completed\2021";
-            DateTime day = new DateTime(2021, 9, 15);
+            string completeDir = @"Z:\3. Patients for Printing\3. Completed\2021";
+            string printingDir = @"Z:\3. Patients for Printing\2. Printing";
+            DateTime day = new DateTime(2021, 9, 20);
 
             try
             {
@@ -28,18 +29,16 @@ namespace PrintStat
 
             try
             {
-                stat.GetCaseInfo(caseDir);
+                string[] searchDirectories = {completeDir, printingDir};
+                stat.GetCaseInfo(searchDirectories);
             }
-            catch (System.Exception)
+            catch (System.Exception e)
             {
                 System.Console.WriteLine($"Getting case information failed: {e.Message}");
                 return;
             }
 
-            //stat.PrintCaseTableRows();
-
             stat.Sort();
-
             stat.Print();
 
         }
