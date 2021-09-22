@@ -198,11 +198,20 @@ namespace PrintStat
             total = caseTable.AsEnumerable().Sum(x => x.Field<int>("Size"));
         }
 
+        private void PrintMessages()
+        {
+            foreach (var msg in messages)
+            {
+                System.Console.WriteLine(msg);
+            }
+        }
+
         public void Print()
         {
             PrintJobTableRows();
             PrintCaseTableRows();
             PrintStatistics();
+            PrintMessages();
         }
 
         public void PrintStatistics()
