@@ -17,7 +17,7 @@ namespace PrintStat
             string printingLogDir = @"Z:\3. Patients for Printing\4. Printing Log\2021";
             string completeDir = @"Z:\3. Patients for Printing\3. Completed\2021";
             string printingDir = @"Z:\3. Patients for Printing\2. Printing";
-            DateTime day = new DateTime(2021, 9, 14);
+            DateTime day = new DateTime(2021, 9, 21);
 
             Statistics stat = new Statistics();
             stat.Date = day;

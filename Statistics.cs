@@ -148,7 +148,7 @@ namespace PrintStat
 
         private void PrintMessages()
         {
-            if (messages.Length > 0)
+            if (messages.Count > 0)
             {
                 System.Console.WriteLine("Note");
                 System.Console.WriteLine("========================================");
@@ -177,7 +177,7 @@ namespace PrintStat
         private void PrintStatisticsHeader(DateTime d)
         {
             System.Console.WriteLine("");
-            System.Console.WriteLine("Statistics by Customer on {d.Date}");
+            System.Console.WriteLine($"Sorted by Customer on {d.Date:d}");
             System.Console.WriteLine("========================================");
 
         }
@@ -195,7 +195,7 @@ namespace PrintStat
         private void PrintJobTableHeader(DateTime d)
         {
             System.Console.WriteLine("");
-            System.Console.WriteLine("Jobs printed on {d.Date}");
+            System.Console.WriteLine($"Jobs printed on {d.Date:d}");
             System.Console.WriteLine("========================================");
         }
 
@@ -203,30 +203,27 @@ namespace PrintStat
         {
             foreach (DataRow row in jobTable.Rows)
             {
-                String name = row["Name"].ToString();
-                String extension = row["Extension"].ToString();
-                System.Console.WriteLine($"{name}{extension}");
+                System.Console.WriteLine($"{row["Name"].ToString()}");
             }
         }
 
         private void PrintCaseTableHeader(DateTime d)
         {
             System.Console.WriteLine("");
-            System.Console.WriteLine("Cases printed on {d.Date}");
+            System.Console.WriteLine($"Cases printed on {d.Date:d}");
             System.Console.WriteLine("========================================");
         }
 
         public void PrintCaseTableRows()
         {
-            System.Console.WriteLine(string.Format("{0,-10}{1,-30}{2,-10}{3,-5}", "Case ID", "Full Name", "Customer", "Size"));
+            System.Console.WriteLine(string.Format("{0,-75}{1,-15}{2,-10}", "Case ID and Patient Name", "Customer", "Size"));
 
             foreach (DataRow row in caseTable.Rows)
             {
-                string id = row["ID"].ToString();
                 string fullName = row["FullName"].ToString(); ;
                 string customer = row["Customer"].ToString();
                 string size = row["Size"].ToString();
-                System.Console.WriteLine(string.Format("{0,-10}{1,-30}{2,-10}{3,-5}", id, fullName, customer, size));
+                System.Console.WriteLine(string.Format("{0,-75}{1,-15}{2,-10}", fullName, customer, size));
             }
         }
 
