@@ -17,6 +17,7 @@ namespace PrintStat
         private List<string> messages = new List<string>();
         private Dictionary<string, int> subTotalbyCustomer = new Dictionary<string, int>();
         private int total = 0;
+        public CustomerMapping customerDict = new CustomerMapping();
 
         public Statistics()
         {
@@ -105,7 +106,7 @@ namespace PrintStat
                         continue;
                     }
 
-                    string cust = GetCustomer(caseFullName);
+                    string cust = GetCustomer(caseFullName, customerDict.CustomerDict);
 
                     try
                     {
@@ -214,7 +215,7 @@ namespace PrintStat
             System.Console.WriteLine("========================================");
         }
 
-        public void PrintCaseTableRows()
+        private void PrintCaseTableRows()
         {
             System.Console.WriteLine(string.Format("{0,-75}{1,-15}{2,-10}", "Case ID and Patient Name", "Customer", "Size"));
 
@@ -228,7 +229,7 @@ namespace PrintStat
         }
 
         // Extract case numbers from the job filename which match the pattern DD-DDDD
-        public List<string> ParseJobName(string job)
+        private List<string> ParseJobName(string job)
         {
             string casePattern = "\\d{2}-\\d{4}";
             Regex rgx = new Regex(casePattern);
@@ -239,7 +240,7 @@ namespace PrintStat
 
 
 
-        public string GetCasePath(string ID, string[] collection)
+        private string GetCasePath(string ID, string[] collection)
         {
             List<string> result = new List<string>();
             foreach (var c in collection)
@@ -267,22 +268,22 @@ namespace PrintStat
             }
         }
 
-        public string GetCustomer(string name)
+        public string GetCustomer(string name, Dictionary<string, string> dict)
         {
-            if (!name.Contains('_'))
+            string pattern = @"_[a-zA-Z0-9]+";
+            Regex rgx = new Regex(pattern, RegexOptions.IgnoreCase);
+            //string result = rgx.Match(name).Groups[1].Value;
+            foreach (Match match in rgx.Matches(name))
             {
-                return "SureCure";
+                if (dict.ContainsKey(match.Value.Substring(1)))
+                {
+                    return dict[match.Value.Substring(1)];
+                }
             }
-            else
-            {
-                string pattern = @"^[^_]*_([a-zA-Z0-9]+)";
-                Regex rgx = new Regex(pattern, RegexOptions.IgnoreCase);
-                string result = rgx.Match(name).Groups[1].Value;
-                return (string.Equals(result, "retainer", StringComparison.OrdinalIgnoreCase)) ? "SureCure" : result.ToUpper();
-            }
+            return "SureCure";
         }
 
-        public int GetCaseSize(string path)
+        private int GetCaseSize(string path)
         {
             string stlDir = $"{path}//Treatment//3D Printing Files";
             string[] stlFiles = Directory.GetFiles(stlDir, "*.stl");
