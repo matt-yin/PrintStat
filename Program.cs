@@ -11,14 +11,29 @@ namespace PrintStat
     {
         static void Main(string[] args)
         {
+            string patientDriveLabel = "Patients";
+            string patientDriveName = "";
+            try
+            {
+                patientDriveName = GetDriveNamebyLabel(patientDriveLabel).Substring(0, 1).ToUpper();
+            }
+            catch (DriveNotFoundException e)
+            {
+                System.Console.WriteLine(e.Message);
+                return;
+            }
+
+            System.Console.WriteLine("========================================");
             System.Console.WriteLine("Welcome to 3DPStats v1.0.0");
 
-            DateTime date;
+            DateTime singleDate;
+            DateTime startDate;
+            DateTime endDate;
+
             while (true)
             {
                 System.Console.WriteLine("========================================");
-
-                System.Console.WriteLine("Enter a date (YYYYMMDD) or press X to exit:");
+                System.Console.WriteLine("Enter a single date (YYYYMMDD) or a date range (YYYYMMDD-YYYYMMDD)\nor press X to exit:");
                 string userInput = Console.ReadLine();
 
                 if (String.Equals(userInput, "X", StringComparison.OrdinalIgnoreCase))
@@ -26,40 +41,49 @@ namespace PrintStat
                     return;
                 }
 
-                if (DateTime.TryParseExact(userInput, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+                if (!userInput.Contains('-'))
                 {
-                    System.Console.WriteLine("Enter the letter for the Patients drive:");
-                    var key = Console.ReadKey();
-                    System.Console.WriteLine("\n");
-
-                    if (key.Key == ConsoleKey.Escape)
+                    if (DateTime.TryParseExact(userInput, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out singleDate))
                     {
-                        return;
+                        DateTime[] dateArray = { singleDate };
+                        Run(dateArray, patientDriveName);
                     }
                     else
                     {
-                        Run(date, key.Key.ToString());
+                        System.Console.WriteLine("Invalid input! Please try again or press X to exit");
                     }
                 }
                 else
                 {
-                    System.Console.WriteLine("Invalid input! Please try again or press X to exit");
+                    var sections = userInput.Split('-');
+                    if (DateTime.TryParseExact(sections[0], "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out startDate)
+                        && DateTime.TryParseExact(sections[1], "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out endDate))
+                    {
+                        DateTime[] dateArray = { startDate, endDate };
+
+                        Run(dateArray, patientDriveName);
+                    }
+                    else
+                    {
+                        System.Console.WriteLine("Invalid input! Please try again or press X to exit");
+
+                    }
                 }
             }
         }
 
-        static void Run(DateTime date, string letter)
+        static void Run(DateTime[] dates, string letter)
         {
             string printingLogDir = $"{letter}:\\3. Patients for Printing\\4. Printing Log\\2021";
             string completeDir = $"{letter}:\\3. Patients for Printing\\3. Completed\\2021";
             string printingDir = $"{letter}:\\3. Patients for Printing\\2. Printing";
 
             Statistics stat = new Statistics();
-            stat.Date = date;
+            stat.Date = dates;
 
             try
             {
-                stat.LoadJobFiles(printingLogDir, date);
+                stat.LoadJobFiles(printingLogDir, dates);
             }
             catch (System.Exception e)
             {
@@ -80,6 +104,20 @@ namespace PrintStat
 
             stat.Sort();
             stat.Print();
+        }
+
+        private static string GetDriveNamebyLabel(string label)
+        {
+            var allDrives = DriveInfo.GetDrives();
+            foreach (var drive in allDrives)
+            {
+                if (String.Equals(drive.VolumeLabel, label, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return drive.Name;
+                }
+            }
+
+            throw new DriveNotFoundException($"Unable to locate {label.ToUpper()} drive!");
         }
     }
 }

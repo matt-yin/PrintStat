@@ -11,7 +11,7 @@ namespace PrintStat
 {
     public class Statistics
     {
-        public DateTime Date { get; set; }
+        public DateTime[] Date { get; set; }
         private DataTable jobTable;
         private DataTable caseTable;
         private List<string> messages = new List<string>();
@@ -39,7 +39,7 @@ namespace PrintStat
         // Load the job files into a data table in memory given the specified job directory
         // File name, creation date and extension are retrieved
         // Files without an extension of 3dprint, print, rpproj are discarded
-        public void LoadJobFiles(string path, DateTime day)
+        public void LoadJobFiles(string path, DateTime[] dates)
         {
             jobTable.Clear();
 
@@ -60,8 +60,17 @@ namespace PrintStat
             string extensionFilter = "Extension NOT IN ('.3dprint', '.print', '.rpproj')";
             RemoveDataRows(jobTable, extensionFilter);
 
-            // Filter creation date
-            string dateFilter = $"CreationDate <> '{day.ToString("d")}'";
+            string dateFilter = "";
+            // Single date mode
+            if (dates.Length == 1)
+            {
+                dateFilter = $"CreationDate <> '{dates[0].ToString("d")}'";
+            }
+            // Date range mode
+            else
+            {
+                dateFilter = $"CreationDate < '{dates[0].ToString("d")}' OR CreationDate > '{dates[1].ToString("d")}'";
+            }
             RemoveDataRows(jobTable, dateFilter);
         }
 
@@ -163,22 +172,24 @@ namespace PrintStat
 
         public void Print()
         {
-            PrintJobTableHeader(Date);
+            PrintJobTableHeader();
             PrintJobTableRows();
 
-            PrintCaseTableHeader(Date);
+            PrintCaseTableHeader();
             PrintCaseTableRows();
 
-            PrintStatisticsHeader(Date);
+            PrintStatisticsHeader();
             PrintStatistics();
 
             PrintMessages();
+            System.Console.WriteLine("\n");
+
         }
 
-        private void PrintStatisticsHeader(DateTime d)
+        private void PrintStatisticsHeader()
         {
             System.Console.WriteLine("");
-            System.Console.WriteLine($"Sorted by Customer on {d.Date:d}");
+            System.Console.WriteLine($"Sorted by Customer");
             System.Console.WriteLine("========================================");
 
         }
@@ -186,45 +197,48 @@ namespace PrintStat
         {
             foreach (var item in subTotalbyCustomer)
             {
-                System.Console.WriteLine(string.Format("{0,-10}{1,-10}", item.Key, item.Value));
+                System.Console.WriteLine(string.Format("{0,-25}{1,-10}", item.Key, item.Value));
             }
 
             System.Console.WriteLine("----------------------------------------");
             System.Console.WriteLine($"The total count of arches is {total}");
         }
 
-        private void PrintJobTableHeader(DateTime d)
+        private void PrintJobTableHeader()
         {
             System.Console.WriteLine("");
-            System.Console.WriteLine($"Jobs printed on {d.Date:d}");
+            System.Console.WriteLine($"Job List");
             System.Console.WriteLine("========================================");
         }
 
         private void PrintJobTableRows()
         {
+            System.Console.WriteLine(string.Format("{0,-15}{1}", "Printed On", "Job Name"));
+
             foreach (DataRow row in jobTable.Rows)
             {
-                System.Console.WriteLine($"{row["Name"].ToString()}");
+                string dt = ((DateTime)row["CreationDate"]).Date.ToString("d");
+                System.Console.WriteLine(string.Format("{0,-15}{1}", dt, row["Name"]));
             }
         }
 
-        private void PrintCaseTableHeader(DateTime d)
+        private void PrintCaseTableHeader()
         {
             System.Console.WriteLine("");
-            System.Console.WriteLine($"Cases printed on {d.Date:d}");
+            System.Console.WriteLine($"Case List");
             System.Console.WriteLine("========================================");
         }
 
         private void PrintCaseTableRows()
         {
-            System.Console.WriteLine(string.Format("{0,-75}{1,-15}{2,-10}", "Case ID and Patient Name", "Customer", "Size"));
+            System.Console.WriteLine(string.Format("{0,-60}{1,-25}{2,-10}", "Case ID and Patient Name", "Customer", "Size"));
 
             foreach (DataRow row in caseTable.Rows)
             {
                 string fullName = row["FullName"].ToString(); ;
                 string customer = row["Customer"].ToString();
                 string size = row["Size"].ToString();
-                System.Console.WriteLine(string.Format("{0,-75}{1,-15}{2,-10}", fullName, customer, size));
+                System.Console.WriteLine(string.Format("{0,-60}{1,-25}{2,-10}", fullName, customer, size));
             }
         }
 
