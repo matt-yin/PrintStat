@@ -16,8 +16,8 @@ for t in range(13, 0, -1):
 	printing_logTempnames = []
 	printing_logFullnames = []
 
-	Path = "Z:/3. Patients for Printing/3. Completed/2021/*"
-	os.chdir("Z:/3. Patients for Printing/3. Completed/2021")
+	Path = "Z:/3. Patients for Printing/3. Completed/2022/*"
+	os.chdir("Z:/3. Patients for Printing/3. Completed/2022")
 
 	for tempnames in glob(Path):
 		fileNames.append(tempnames[len(Path)-1:len(Path)+6])
@@ -64,7 +64,7 @@ for t in range(13, 0, -1):
 	surecureCount = 0
 
 
-	printingPath = "Z:/3. Patients for Printing/4. Printing Log/2021/*"
+	printingPath = "Z:/3. Patients for Printing/4. Printing Log/2022/*"
 
 	for printing_logTempnames in glob(printingPath):
 		split = printing_logTempnames[49:].split()
@@ -79,7 +79,7 @@ for t in range(13, 0, -1):
 	print(SpecificDate.date())
 	for p in range(startPos,endPos):
 		# print(fileNames2[p])
-		for file in os.listdir("Z:/3. Patients for Printing/3. Completed/2021/" + str(fileNames2[p]) + "/Treatment/Setup Files"):
+		for file in os.listdir("Z:/3. Patients for Printing/3. Completed/2022/" + str(fileNames2[p]) + "/Treatment/Setup Files"):
 			for x in range(0, endPrintingLog):
 				printing_logFilesSplit = printing_logFiles[x].split("_")
 				for x2 in range(0, len(printing_logFilesSplit)):

@@ -160,6 +160,7 @@ namespace PrintStat
         {
             if (messages.Count > 0)
             {
+                System.Console.WriteLine("");
                 System.Console.WriteLine("Note");
                 System.Console.WriteLine("========================================");
 
@@ -182,8 +183,6 @@ namespace PrintStat
             PrintStatistics();
 
             PrintMessages();
-            System.Console.WriteLine("\n");
-
         }
 
         private void PrintStatisticsHeader()

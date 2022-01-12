@@ -24,7 +24,7 @@ namespace PrintStat
             }
 
             System.Console.WriteLine("========================================");
-            System.Console.WriteLine("Welcome to 3DPStats v1.0.0");
+            System.Console.WriteLine("Welcome to 3DPStats v1.0.1");
 
             DateTime singleDate;
             DateTime startDate;
@@ -74,9 +74,10 @@ namespace PrintStat
 
         static void Run(DateTime[] dates, string letter)
         {
-            string printingLogDir = $"{letter}:\\3. Patients for Printing\\4. Printing Log\\2021";
-            string completeDir = $"{letter}:\\3. Patients for Printing\\3. Completed\\2021";
+            string printingLogDir = $"{letter}:\\3. Patients for Printing\\4. Printing Log\\2022";
+            string completeDir = $"{letter}:\\3. Patients for Printing\\3. Completed\\2022";
             string printingDir = $"{letter}:\\3. Patients for Printing\\2. Printing";
+            
 
             Statistics stat = new Statistics();
             stat.Date = dates;

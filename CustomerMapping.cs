@@ -21,6 +21,9 @@ namespace PrintStat
             CustomerDict.Add("OFX", "OrthoFX");
             CustomerDict.Add("CF", "Clear Forward");
             CustomerDict.Add("BYT", "Byte");
+            CustomerDict.Add("SHK", "Smile Hawk");
+            CustomerDict.Add("3DP", "3D Predict");
+            CustomerDict.Add("GOD", "Global Ortho Design");
         }
     }
 }
