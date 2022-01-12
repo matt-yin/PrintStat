@@ -74,8 +74,8 @@ namespace PrintStat
 
         static void Run(DateTime[] dates, string letter)
         {
-            string printingLogDir = $"{letter}:\\3. Patients for Printing\\4. Printing Log\\2022";
-            string completeDir = $"{letter}:\\3. Patients for Printing\\3. Completed\\2022";
+            string printingLogDir = $"{letter}:\\3. Patients for Printing\\4. Printing Log\\2021";
+            string completeDir = $"{letter}:\\3. Patients for Printing\\3. Completed\\2021";
             string printingDir = $"{letter}:\\3. Patients for Printing\\2. Printing";
             
 
