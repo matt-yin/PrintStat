@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Globalization;
+using System.Threading;
 
 namespace PrintStat
 {
@@ -24,26 +25,52 @@ namespace PrintStat
             System.Console.WriteLine("========================================");
             System.Console.WriteLine("Welcome to 3DPStats v1.1.0");
 
+            // Loop for getting manual input
+            // while (true)
+            // {
+            //     System.Console.WriteLine("========================================");
+            //     System.Console.WriteLine("Enter a single date (YYYYMMDD)\nor press X to exit:");
+            //     string userInput = Console.ReadLine();
+
+            //     if (String.Equals(userInput, "X", StringComparison.OrdinalIgnoreCase))
+            //     {
+            //         return;
+            //     }
+
+            //     if (DateTime.TryParseExact(userInput, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
+            //     {
+            //         Run(date, patientDriveName);
+            //     }
+            //     else
+            //     {
+            //         System.Console.WriteLine("Invalid input! Please try again or press X to exit");
+            //     }
+            // }
+
+            // Automatic running mode
+
+
+            bool hasRun = false;
             while (true)
             {
-                System.Console.WriteLine("========================================");
-                System.Console.WriteLine("Enter a single date (YYYYMMDD)\nor press X to exit:");
-                string userInput = Console.ReadLine();
+                DateTime now = DateTime.Now;
+                // if (now.Hour != 14)
+                // {
+                //     Thread.Sleep(5000);
+                //     continue;
+                // }
 
-                if (String.Equals(userInput, "X", StringComparison.OrdinalIgnoreCase))
+                if (hasRun == false)
                 {
-                    return;
+                    Run(now, patientDriveName);
+                    hasRun = true;
+                    continue;
                 }
 
-                if (DateTime.TryParseExact(userInput, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
-                {
-                    Run(date, patientDriveName);
-                }
-                else
-                {
-                    System.Console.WriteLine("Invalid input! Please try again or press X to exit");
-                }
+                System.Console.WriteLine("Program sleeping...");
+                Thread.Sleep(5000);
             }
+
         }
 
         static void Run(DateTime date, string letter)
@@ -83,7 +110,7 @@ namespace PrintStat
                 return;
             }
 
-            stat.Sort();
+            //stat.Sort();
             // stat.Print();
             stat.Export();
         }

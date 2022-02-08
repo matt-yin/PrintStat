@@ -188,16 +188,29 @@ namespace PrintStat
         {
             var exportPath = GetExportFilePath();
 
+            // if the stats folder does not exist, create one
+            var folder = Directory.GetParent(exportPath);
+            if (!Directory.Exists(folder.FullName))
+            {
+                Directory.CreateDirectory(folder.FullName);
+            }
+
             using (StreamWriter sw = new StreamWriter(new FileStream(exportPath, FileMode.Create, FileAccess.Write)))
             {
+                DateTime now = DateTime.Now;
+                WriteStringToStream(sw, "Welcome to 3DPStats v1.1.0");
+                WriteEmptyLineToStream(sw);
+                WriteStringToStream(sw, $"Report generated at {now.ToLongTimeString()} on {now.ToShortDateString()}");
+                WriteEmptyLineToStream(sw);
+                WriteEmptyLineToStream(sw);
                 WriteStringToStream(sw, $"{Analyzer.GetJobCount(jobTable)} jobs have been printed on {Date.ToShortDateString()}: ");
                 WriteItemsToStream(sw, GetJobs());
-                WriteStringToStream(sw, "");
+                WriteEmptyLineToStream(sw);
                 WriteStringToStream(sw, $"{Analyzer.GetCaseCount(caseTable)} cases ({Analyzer.GetArchCount(caseTable)} arches) have been printed on {Date.ToShortDateString()}: ");
                 WriteItemsToStream(sw, GetCases());
-                WriteStringToStream(sw, "");
+                WriteEmptyLineToStream(sw);
                 WriteStringToStream(sw, "Categorized by customers:");
-                WriteStringToStream(sw, String.Format("{0,-25}{1,-10}{2,-10}", "Customer", "Case Count", "Arch Count"));
+                WriteStringToStream(sw, String.Format("{0,-25}{1,-15}{2,-15}", "Customer", "Case Count", "Arch Count"));
                 WriteDictionaryToStream(sw, Analyzer.GetCaseCountByCustomer(caseTable), Analyzer.GetArchCountByCustomer(caseTable));
             }
         }
@@ -210,6 +223,11 @@ namespace PrintStat
             }
         }
 
+        private void WriteEmptyLineToStream(StreamWriter sw)
+        {
+            sw.WriteLine();
+        }
+
         private void WriteStringToStream(StreamWriter sw, string msg)
         {
             sw.WriteLine(msg);
@@ -219,7 +237,7 @@ namespace PrintStat
         {
             foreach (var item in dict)
             {
-                string data = String.Format("{0,-25}{1,-10}", item.Key, item.Value);
+                string data = String.Format("{0,-25}{1,-15}", item.Key, item.Value);
                 WriteStringToStream(sw, data);
             }
         }
@@ -228,7 +246,7 @@ namespace PrintStat
         {
             foreach (var item in dict1)
             {
-                string data = String.Format("{0,-25}{1,-10}{2,-10}", item.Key, item.Value, dict2[item.Key]);
+                string data = String.Format("{0,-25}{1,-15}{2,-15}", item.Key, item.Value, dict2[item.Key]);
                 WriteStringToStream(sw, data);
             }
         }
