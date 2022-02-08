@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Globalization;
 
-// 1. Refactor the Count class
-
 namespace PrintStat
 {
     class Program
@@ -24,16 +22,12 @@ namespace PrintStat
             }
 
             System.Console.WriteLine("========================================");
-            System.Console.WriteLine("Welcome to 3DPStats v1.0.1");
-
-            DateTime singleDate;
-            DateTime startDate;
-            DateTime endDate;
+            System.Console.WriteLine("Welcome to 3DPStats v1.1.0");
 
             while (true)
             {
                 System.Console.WriteLine("========================================");
-                System.Console.WriteLine("Enter a single date (YYYYMMDD) or a date range (YYYYMMDD-YYYYMMDD)\nor press X to exit:");
+                System.Console.WriteLine("Enter a single date (YYYYMMDD)\nor press X to exit:");
                 string userInput = Console.ReadLine();
 
                 if (String.Equals(userInput, "X", StringComparison.OrdinalIgnoreCase))
@@ -41,42 +35,22 @@ namespace PrintStat
                     return;
                 }
 
-                if (!userInput.Contains('-'))
+                if (DateTime.TryParseExact(userInput, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
                 {
-                    if (DateTime.TryParseExact(userInput, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out singleDate))
-                    {
-                        DateTime[] dateArray = { singleDate };
-                        Run(dateArray, patientDriveName);
-                    }
-                    else
-                    {
-                        System.Console.WriteLine("Invalid input! Please try again or press X to exit");
-                    }
+                    Run(date, patientDriveName);
                 }
                 else
                 {
-                    var sections = userInput.Split('-');
-                    if (DateTime.TryParseExact(sections[0], "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out startDate)
-                        && DateTime.TryParseExact(sections[1], "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out endDate))
-                    {
-                        DateTime[] dateArray = { startDate, endDate };
-
-                        Run(dateArray, patientDriveName);
-                    }
-                    else
-                    {
-                        System.Console.WriteLine("Invalid input! Please try again or press X to exit");
-
-                    }
+                    System.Console.WriteLine("Invalid input! Please try again or press X to exit");
                 }
             }
         }
 
-        static void Run(DateTime[] dates, string letter)
+        static void Run(DateTime date, string letter)
         {
             // Directory for job files
             string printingLog2021Dir = $"{letter}:\\3. Patients for Printing\\4. Printing Log\\2021";
-            //string printingLog2022Dir = $"{letter}:\\3. Patients for Printing\\4. Printing Log\\2022";
+            string printingLog2022Dir = $"{letter}:\\3. Patients for Printing\\4. Printing Log\\2022";
 
             // Directory for case folders
             string printingDir = $"{letter}:\\3. Patients for Printing\\2. Printing";
@@ -85,12 +59,12 @@ namespace PrintStat
             string complete2022Dir = $"{letter}:\\3. Patients for Printing\\3. Completed\\2022";
 
 
-            Statistics stat = new Statistics();
-            stat.Date = dates;
+            Statistics stat = new Statistics() { Date = date };
 
             try
             {
-                stat.LoadJobFiles(printingLog2021Dir, dates);
+                string[] jobDirectories = { printingLog2021Dir, printingLog2022Dir };
+                stat.LoadJobFiles(jobDirectories);
             }
             catch (System.Exception e)
             {
@@ -110,7 +84,8 @@ namespace PrintStat
             }
 
             stat.Sort();
-            stat.Print();
+            // stat.Print();
+            stat.Export();
         }
 
         private static string GetDriveNamebyLabel(string label)

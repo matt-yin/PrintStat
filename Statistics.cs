@@ -11,7 +11,7 @@ namespace PrintStat
 {
     public class Statistics
     {
-        public DateTime[] Date { get; set; }
+        public DateTime Date { get; set; }
         private DataTable jobTable;
         private DataTable caseTable;
         private List<string> messages = new List<string>();
@@ -39,21 +39,23 @@ namespace PrintStat
         // Load the job files into a data table in memory given the specified job directory
         // File name, creation date and extension are retrieved
         // Files without an extension of 3dprint, print, rpproj are discarded
-        public void LoadJobFiles(string path, DateTime[] dates)
+        public void LoadJobFiles(string[] paths)
         {
             jobTable.Clear();
 
-            string[] jobFiles = Directory.GetFiles(path);
-            foreach (var jobFile in jobFiles)
+            foreach (var path in paths)
             {
-                FileInfo info = new FileInfo(jobFile);
+                string[] jobFiles = Directory.GetFiles(path);
+                foreach (var jobFile in jobFiles)
+                {
+                    FileInfo info = new FileInfo(jobFile);
 
-                var row = jobTable.NewRow();
-                row["Name"] = Path.GetFileName(jobFile);
-                row["CreationDate"] = info.CreationTime.Date;
-                row["Extension"] = Path.GetExtension(jobFile);
-                jobTable.Rows.Add(row);
-
+                    var row = jobTable.NewRow();
+                    row["Name"] = Path.GetFileName(jobFile);
+                    row["CreationDate"] = info.CreationTime.Date;
+                    row["Extension"] = Path.GetExtension(jobFile);
+                    jobTable.Rows.Add(row);
+                }
             }
 
             // // Filter file extension
@@ -62,15 +64,10 @@ namespace PrintStat
 
             string dateFilter = "";
             // Single date mode
-            if (dates.Length == 1)
-            {
-                dateFilter = $"CreationDate <> '{dates[0].ToString("d")}'";
-            }
-            // Date range mode
-            else
-            {
-                dateFilter = $"CreationDate < '{dates[0].ToString("d")}' OR CreationDate > '{dates[1].ToString("d")}'";
-            }
+
+            dateFilter = $"CreationDate <> '{Date.ToString("d")}'";
+
+
             RemoveDataRows(jobTable, dateFilter);
         }
 
@@ -173,6 +170,7 @@ namespace PrintStat
 
         public void Print()
         {
+
             PrintJobTableHeader();
             PrintJobTableRows();
 
@@ -183,6 +181,63 @@ namespace PrintStat
             PrintStatistics();
 
             PrintMessages();
+
+        }
+
+        public void Export()
+        {
+            var exportPath = GetExportFilePath();
+
+            using (StreamWriter sw = new StreamWriter(new FileStream(exportPath, FileMode.Create, FileAccess.Write)))
+            {
+                WriteStringToStream(sw, $"{Analyzer.GetJobCount(jobTable)} jobs have been printed on {Date.ToShortDateString()}: ");
+                WriteItemsToStream(sw, GetJobs());
+                WriteStringToStream(sw, "");
+                WriteStringToStream(sw, $"{Analyzer.GetCaseCount(caseTable)} cases ({Analyzer.GetArchCount(caseTable)} arches) have been printed on {Date.ToShortDateString()}: ");
+                WriteItemsToStream(sw, GetCases());
+                WriteStringToStream(sw, "");
+                WriteStringToStream(sw, "Categorized by customers:");
+                WriteStringToStream(sw, String.Format("{0,-25}{1,-10}{2,-10}", "Customer", "Case Count", "Arch Count"));
+                WriteDictionaryToStream(sw, Analyzer.GetCaseCountByCustomer(caseTable), Analyzer.GetArchCountByCustomer(caseTable));
+            }
+        }
+
+        private void WriteItemsToStream(StreamWriter sw, IEnumerable<string> items)
+        {
+            foreach (var item in items)
+            {
+                sw.WriteLine(item);
+            }
+        }
+
+        private void WriteStringToStream(StreamWriter sw, string msg)
+        {
+            sw.WriteLine(msg);
+        }
+
+        private void WriteDictionaryToStream(StreamWriter sw, Dictionary<string, int> dict)
+        {
+            foreach (var item in dict)
+            {
+                string data = String.Format("{0,-25}{1,-10}", item.Key, item.Value);
+                WriteStringToStream(sw, data);
+            }
+        }
+
+        private void WriteDictionaryToStream(StreamWriter sw, Dictionary<string, int> dict1, Dictionary<string, int> dict2)
+        {
+            foreach (var item in dict1)
+            {
+                string data = String.Format("{0,-25}{1,-10}{2,-10}", item.Key, item.Value, dict2[item.Key]);
+                WriteStringToStream(sw, data);
+            }
+        }
+
+        string GetExportFilePath()
+        {
+            var dateString = DateTime.Today.ToShortDateString();
+            var myDocumentsDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            return Path.Combine(myDocumentsDir, "Print Statistics", $"Print Count_{dateString}.txt");
         }
 
         private void PrintStatisticsHeader()
@@ -221,10 +276,18 @@ namespace PrintStat
             }
         }
 
+        private IEnumerable<string> GetJobs()
+        {
+            foreach (DataRow row in jobTable.Rows)
+            {
+                yield return row["Name"].ToString();
+            }
+        }
+
         private void PrintCaseTableHeader()
         {
             System.Console.WriteLine("");
-            System.Console.WriteLine($"Case List");
+            System.Console.WriteLine("Case List");
             System.Console.WriteLine("========================================");
         }
 
@@ -241,17 +304,26 @@ namespace PrintStat
             }
         }
 
+        private IEnumerable<string> GetCases()
+        {
+            foreach (DataRow row in caseTable.Rows)
+            {
+                string fullName = row["FullName"].ToString(); ;
+                string customer = row["Customer"].ToString();
+                string size = row["Size"].ToString();
+                yield return String.Format("{0,-60}{1,-25}{2,-10}", fullName, customer, size);
+            }
+        }
+
         // Extract case numbers from the job filename which match the pattern DD-DDDD
         private List<string> ParseJobName(string job)
         {
-            string casePattern = "\\d{2}-\\d{4}";
+            string casePattern = @"\d{2}-\d*";
             Regex rgx = new Regex(casePattern);
             var matches = rgx.Matches(job);
             var list = matches.Cast<Match>().Select(Match => Match.Value).ToList();
             return list;
         }
-
-
 
         private string GetCasePath(string ID, string[] collection)
         {
