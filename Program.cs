@@ -74,17 +74,23 @@ namespace PrintStat
 
         static void Run(DateTime[] dates, string letter)
         {
-            string printingLogDir = $"{letter}:\\3. Patients for Printing\\4. Printing Log\\2021";
-            string completeDir = $"{letter}:\\3. Patients for Printing\\3. Completed\\2021";
+            // Directory for job files
+            string printingLog2021Dir = $"{letter}:\\3. Patients for Printing\\4. Printing Log\\2021";
+            //string printingLog2022Dir = $"{letter}:\\3. Patients for Printing\\4. Printing Log\\2022";
+
+            // Directory for case folders
             string printingDir = $"{letter}:\\3. Patients for Printing\\2. Printing";
-            
+            string complete2020Dir = $"{letter}:\\3. Patients for Printing\\3. Completed\\2020";
+            string complete2021Dir = $"{letter}:\\3. Patients for Printing\\3. Completed\\2021";
+            string complete2022Dir = $"{letter}:\\3. Patients for Printing\\3. Completed\\2022";
+
 
             Statistics stat = new Statistics();
             stat.Date = dates;
 
             try
             {
-                stat.LoadJobFiles(printingLogDir, dates);
+                stat.LoadJobFiles(printingLog2021Dir, dates);
             }
             catch (System.Exception e)
             {
@@ -94,7 +100,7 @@ namespace PrintStat
 
             try
             {
-                string[] searchDirectories = { completeDir, printingDir };
+                string[] searchDirectories = { printingDir, complete2020Dir, complete2021Dir, complete2022Dir };
                 stat.GetCaseInfo(searchDirectories);
             }
             catch (System.Exception e)
