@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Globalization;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace PrintStat
 {
@@ -22,8 +23,11 @@ namespace PrintStat
                 return;
             }
 
-            System.Console.WriteLine("========================================");
-            System.Console.WriteLine("Welcome to 3DPStats v1.1.0");
+
+            // System.Console.Clear();
+            // System.Console.WriteLine("Welcome to 3DPStats v1.1.0");
+            // System.Console.WriteLine("========================================");
+            // System.Console.WriteLine("");
 
             // Loop for getting manual input
             // while (true)
@@ -47,28 +51,99 @@ namespace PrintStat
             //     }
             // }
 
-            // Automatic running mode
-
-
             bool hasRun = false;
             while (true)
             {
                 DateTime now = DateTime.Now;
-                // if (now.Hour != 14)
-                // {
-                //     Thread.Sleep(5000);
-                //     continue;
-                // }
 
-                if (hasRun == false)
+                if (now.Hour == 23 && hasRun == false)
                 {
-                    Run(now, patientDriveName);
+                    var tokenSource = new CancellationTokenSource();
+                    var cancelToken = tokenSource.Token;
+
+                    List<Task> tasks = new List<Task>();
+                    tasks.Add(Task.Run(() => WritePulseCancellable("Generating report ", 10, cancelToken), cancelToken));
+                    tasks.Add(Task.Run(() => Run(now, patientDriveName), cancelToken));
+
+                    Task.WaitAny(tasks.ToArray());
+                    tokenSource.Cancel();
+
+                    Sleep($"Report generated at {now.ToLongTimeString()} ", 10);
                     hasRun = true;
-                    continue;
                 }
 
-                System.Console.WriteLine("Program sleeping...");
-                Thread.Sleep(5000);
+                Sleep("System sleeping ", 10);
+            }
+
+        }
+
+        static void Sleep(string msg, int interval)
+        {
+            int ctr = 0;
+            Console.Clear();
+            Console.Write(msg);
+            while (ctr < interval)
+            {
+                ctr++;
+                Console.Write(".");
+                Thread.Sleep(1000);
+            }
+        }
+
+
+        static void WritePulse(string msg, int interval)
+        {
+            int ctr = 0;
+            while (true)
+            {
+                System.Console.Write(msg);
+                while (ctr < interval)
+                {
+                    System.Console.Write(".");
+                    Thread.Sleep(1000);
+                    ctr++;
+                }
+                if (ctr >= interval)
+                {
+                    ConsoleCleanLine();
+                    ctr = 0;
+                }
+            }
+        }
+
+        static void ConsoleCleanLine()
+        {
+            System.Console.SetCursorPosition(0, System.Console.CursorTop);
+            System.Console.Write(new string(' ', System.Console.WindowWidth));
+            System.Console.SetCursorPosition(0, System.Console.CursorTop);
+        }
+
+        static void WritePulseCancellable(string msg, int interval, CancellationToken ct)
+        {
+            int ctr = 0;
+            while (true)
+            {
+                if (ct.IsCancellationRequested)
+                {
+                    return;
+                }
+                Console.Clear();
+                System.Console.Write(msg);
+                while (ctr < interval)
+                {
+                    if (ct.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    System.Console.Write(".");
+                    Thread.Sleep(1000);
+                    ctr++;
+                }
+                if (ctr >= interval)
+                {
+                    ctr = 0;
+                }
             }
 
         }

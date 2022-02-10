@@ -19,6 +19,8 @@ namespace PrintStat
             CustomerDict.Add("USM", "USmile");
             CustomerDict.Add("SSS", "Straight Smile");
             CustomerDict.Add("OFX", "OrthoFX");
+            CustomerDict.Add("OFXR", "OrthoFX");
+            CustomerDict.Add("OFXBA", "OrthoFX");
             CustomerDict.Add("CF", "Clear Forward");
             CustomerDict.Add("BYT", "Byte");
             CustomerDict.Add("SHK", "Smile Hawk");

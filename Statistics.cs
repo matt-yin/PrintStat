@@ -197,21 +197,36 @@ namespace PrintStat
 
             using (StreamWriter sw = new StreamWriter(new FileStream(exportPath, FileMode.Create, FileAccess.Write)))
             {
-                DateTime now = DateTime.Now;
+                // Exporting title and timestamp
                 WriteStringToStream(sw, "Welcome to 3DPStats v1.1.0");
                 WriteEmptyLineToStream(sw);
-                WriteStringToStream(sw, $"Report generated at {now.ToLongTimeString()} on {now.ToShortDateString()}");
+                WriteStringToStream(sw, $"Report generated at {Date.ToLongTimeString()} on {Date.ToShortDateString()}");
                 WriteEmptyLineToStream(sw);
                 WriteEmptyLineToStream(sw);
+
+                // Exporting job list
                 WriteStringToStream(sw, $"{Analyzer.GetJobCount(jobTable)} jobs have been printed on {Date.ToShortDateString()}: ");
                 WriteItemsToStream(sw, GetJobs());
                 WriteEmptyLineToStream(sw);
+
+                // Exporting case list
                 WriteStringToStream(sw, $"{Analyzer.GetCaseCount(caseTable)} cases ({Analyzer.GetArchCount(caseTable)} arches) have been printed on {Date.ToShortDateString()}: ");
                 WriteItemsToStream(sw, GetCases());
                 WriteEmptyLineToStream(sw);
+
+                // Exporting case and arch count by customer
                 WriteStringToStream(sw, "Categorized by customers:");
                 WriteStringToStream(sw, String.Format("{0,-25}{1,-15}{2,-15}", "Customer", "Case Count", "Arch Count"));
                 WriteDictionaryToStream(sw, Analyzer.GetCaseCountByCustomer(caseTable), Analyzer.GetArchCountByCustomer(caseTable));
+
+                // Exporting note messages if any
+                if (messages.Count > 0)
+                {
+                    WriteEmptyLineToStream(sw);
+                    WriteEmptyLineToStream(sw);
+                    WriteStringToStream(sw, "Notes:");
+                    WriteItemsToStream(sw, messages);
+                }
             }
         }
 
@@ -253,7 +268,7 @@ namespace PrintStat
 
         string GetExportFilePath()
         {
-            var dateString = DateTime.Today.ToShortDateString();
+            var dateString = Date.ToShortDateString();
             var myDocumentsDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             return Path.Combine(myDocumentsDir, "Print Statistics", $"Print Count_{dateString}.txt");
         }
