@@ -9,10 +9,14 @@ namespace PrintStat
 {
     class Program
     {
+        static string patientDriveLabel = "Patients";
+        static string patientDriveName;
+        static bool hasRun = false;
+        static DateTime timer = new DateTime(2022, 1, 1, 23, 1, 1);
         static void Main(string[] args)
         {
-            string patientDriveLabel = "Patients";
-            string patientDriveName = "";
+
+            // Get the drive letters for patient and machining folders
             try
             {
                 patientDriveName = GetDriveNamebyLabel(patientDriveLabel).Substring(0, 1).ToUpper();
@@ -23,58 +27,83 @@ namespace PrintStat
                 return;
             }
 
-
-            // System.Console.Clear();
-            // System.Console.WriteLine("Welcome to 3DPStats v1.1.0");
-            // System.Console.WriteLine("========================================");
-            // System.Console.WriteLine("");
-
-            // Loop for getting manual input
-            // while (true)
-            // {
-            //     System.Console.WriteLine("========================================");
-            //     System.Console.WriteLine("Enter a single date (YYYYMMDD)\nor press X to exit:");
-            //     string userInput = Console.ReadLine();
-
-            //     if (String.Equals(userInput, "X", StringComparison.OrdinalIgnoreCase))
-            //     {
-            //         return;
-            //     }
-
-            //     if (DateTime.TryParseExact(userInput, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
-            //     {
-            //         Run(date, patientDriveName);
-            //     }
-            //     else
-            //     {
-            //         System.Console.WriteLine("Invalid input! Please try again or press X to exit");
-            //     }
-            // }
-
-            bool hasRun = false;
-            while (true)
+            // Get user input for running mode
+            System.Console.WriteLine("Choose the running mode: \nPress A for Automatic, Press M for Manual: (Press X to Exit)");
+            string modeInput = Console.ReadLine();
+            if (String.Equals(modeInput, "X", StringComparison.OrdinalIgnoreCase))
             {
-                DateTime now = DateTime.Now;
-
-                if (now.Hour == 23 && hasRun == false)
-                {
-                    var tokenSource = new CancellationTokenSource();
-                    var cancelToken = tokenSource.Token;
-
-                    List<Task> tasks = new List<Task>();
-                    tasks.Add(Task.Run(() => WritePulseCancellable("Generating report ", 10, cancelToken), cancelToken));
-                    tasks.Add(Task.Run(() => Run(now, patientDriveName), cancelToken));
-
-                    Task.WaitAny(tasks.ToArray());
-                    tokenSource.Cancel();
-
-                    Sleep($"Report generated at {now.ToLongTimeString()} ", 10);
-                    hasRun = true;
-                }
-
-                Sleep("System sleeping ", 10);
+                return;
             }
 
+            // Automatic mode
+            if (String.Equals(modeInput, "A", StringComparison.OrdinalIgnoreCase))
+            {
+                AutomaticRun(timer);
+            }
+
+            //Manual mode
+            if (String.Equals(modeInput, "M", StringComparison.OrdinalIgnoreCase))
+            {
+                ManualRun();
+            }
+
+            static void ManualRun()
+            {
+                while (true)
+                {
+                    System.Console.Clear();
+                    System.Console.WriteLine("Enter a single date (YYYYMMDD)\nor press X to exit:");
+                    string userInput = Console.ReadLine();
+
+                    if (String.Equals(userInput, "X", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return;
+                    }
+
+                    if (DateTime.TryParseExact(userInput, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
+                    {
+                        RunAsync(date);
+
+                        System.Console.WriteLine("");
+                        System.Console.WriteLine($"Report generated at {DateTime.Now.ToLongTimeString()}");
+                        System.Console.WriteLine("Press any key to continue");
+                        Console.ReadLine();
+                    }
+                    else
+                    {
+                        System.Console.WriteLine("Invalid input! Please try again or press X to exit");
+                    }
+                }
+            }
+
+            static void AutomaticRun(DateTime date)
+            {
+                while (true)
+                {
+                    DateTime now = DateTime.Now;
+
+                    if (now.Hour == date.Hour && hasRun == false)
+                    {
+                        RunAsync(now);
+                        hasRun = true;
+                    }
+
+                    Sleep("System sleeping ", 10);
+                }
+            }
+
+            static void RunAsync(DateTime date)
+            {
+                var tokenSource = new CancellationTokenSource();
+                var cancelToken = tokenSource.Token;
+
+                List<Task> tasks = new List<Task>();
+                tasks.Add(Task.Run(() => WritePulseCancellable("Generating report ", 10, cancelToken), cancelToken));
+                tasks.Add(Task.Run(() => Run(date, patientDriveName), cancelToken));
+
+                Task.WaitAny(tasks.ToArray());
+                tokenSource.Cancel();
+            }
         }
 
         static void Sleep(string msg, int interval)
@@ -88,34 +117,6 @@ namespace PrintStat
                 Console.Write(".");
                 Thread.Sleep(1000);
             }
-        }
-
-
-        static void WritePulse(string msg, int interval)
-        {
-            int ctr = 0;
-            while (true)
-            {
-                System.Console.Write(msg);
-                while (ctr < interval)
-                {
-                    System.Console.Write(".");
-                    Thread.Sleep(1000);
-                    ctr++;
-                }
-                if (ctr >= interval)
-                {
-                    ConsoleCleanLine();
-                    ctr = 0;
-                }
-            }
-        }
-
-        static void ConsoleCleanLine()
-        {
-            System.Console.SetCursorPosition(0, System.Console.CursorTop);
-            System.Console.Write(new string(' ', System.Console.WindowWidth));
-            System.Console.SetCursorPosition(0, System.Console.CursorTop);
         }
 
         static void WritePulseCancellable(string msg, int interval, CancellationToken ct)
